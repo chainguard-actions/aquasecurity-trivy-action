@@ -1,0 +1,4 @@
+{
+  "upstream": "aquasecurity/trivy-action",
+  "version": "v0.35.0"
+}
