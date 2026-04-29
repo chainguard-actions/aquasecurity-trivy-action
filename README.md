@@ -1,6 +1,12 @@
 # aquasecurity/trivy-action
 
-Hardened GitHub Action by [Chainguard](https://www.chainguard.dev).
+Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/aquasecurity/trivy-action](https://github.com/aquasecurity/trivy-action).
+
+## Versions
+
+| Version | Tag | Upstream commit |
+|---------|-----|-----------------|
+| v0.35.0 | [`v0.35.0`](https://github.com/chainguard-actions/trivy-action/tree/v0.35.0) | — |
 
 ## Privacy
 
