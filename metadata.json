@@ -1,5 +1,6 @@
 {
   "owner": "aquasecurity",
   "name": "trivy-action",
-  "visibility": ""
+  "visibility": "internal",
+  "description": "Runs Trivy as GitHub action to scan your Docker container image for vulnerabilities"
 }
