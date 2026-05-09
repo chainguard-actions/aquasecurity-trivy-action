@@ -1,4 +1,6 @@
 {
-  "upstream": "aquasecurity/trivy-action",
-  "version": "v0.35.0"
+  "owner": "aquasecurity",
+  "repo": "trivy-action",
+  "version": "",
+  "url": "https://github.com/aquasecurity/trivy-action"
 }
