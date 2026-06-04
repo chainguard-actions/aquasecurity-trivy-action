@@ -1,0 +1,23 @@
+name: Test image scan with image-ref
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Run Trivy image scan
+        id: action
+        uses: .
+        with:
+          scan-type: image
+          image-ref: alpine:3.18
+          exit-code: '0'
+          hide-progress: 'true'
+          severity: CRITICAL
+          ignore-unfixed: 'true'
+          cache: 'false'
+      - name: Assert image scan completed
+        run: |
+          echo "Trivy image scan with image-ref completed successfully"
+          echo "PASS"

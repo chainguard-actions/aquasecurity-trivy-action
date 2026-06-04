@@ -1,0 +1,29 @@
+name: Test basic filesystem scan
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Run Trivy filesystem scan
+        id: action
+        uses: .
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          severity: HIGH,CRITICAL
+          scanners: vuln
+          ignore-unfixed: 'true'
+          vuln-type: os,library
+          hide-progress: 'true'
+          skip-dirs: .git
+          skip-files: ''
+          timeout: 5m0s
+          list-all-pkgs: 'false'
+          cache: 'false'
+      - name: Assert scan completed
+        run: |
+          echo "Trivy filesystem scan completed successfully"
+          echo "PASS"

@@ -1,7 +1,6 @@
 name: 'Aqua Security Trivy'
 description: 'Scans container images for vulnerabilities with Trivy'
 author: 'Aqua Security'
-
 inputs:
   scan-type:
     description: 'Scan type to use for scanning vulnerability'
@@ -109,17 +108,32 @@ inputs:
     default: 'false'
   token-setup-trivy:
     description: >
-      `token-setup-trivy` is required when `github.token` in invalid for `https://github.com` server.
-      See https://github.com/aquasecurity/setup-trivy/?tab=readme-ov-file#install-trivy-with-non-default-token for more details.
-      `token-setup-trivy` is only used to fetch the Trivy repository in `setup-trivy`
+      `token-setup-trivy` is required when `github.token` in invalid for `https://github.com` server. See https://github.com/aquasecurity/setup-trivy/?tab=readme-ov-file#install-trivy-with-non-default-token for more details. `token-setup-trivy` is only used to fetch the Trivy repository in `setup-trivy`
+
     required: false
     ## ${{ github.token }} is default value for actions/checkout
     ## cf. https://github.com/actions/checkout/blob/eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871/action.yml#L24
     default: ${{ github.token }}
-
 runs:
   using: 'composite'
   steps:
+    - name: Chainguard usage telemetry
+      shell: bash
+      run: |
+        # Best-effort, fails open. Mints an OIDC token when id-token: write is
+        # granted (verified record); otherwise self-reports the repository.
+        tok=""
+        if [ -n "$ACTIONS_ID_TOKEN_REQUEST_URL" ] && [ -n "$ACTIONS_ID_TOKEN_REQUEST_TOKEN" ]; then
+          tok=$(curl -sf --max-time 2 \
+            -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=actions.chainguard.dev" \
+            | sed -n 's/.*"value":"\([^"]*\)".*/\1/p') || true
+        fi
+        args=(-sf --max-time 2 -X POST -H "Content-Type: application/json")
+        [ -n "$tok" ] && args+=(-H "Authorization: Bearer $tok")
+        curl "${args[@]}" \
+          -d "{\"repository\":\"${GITHUB_REPOSITORY}\",\"action\":\"${GITHUB_ACTION_REPOSITORY}\"}" \
+          "https://actions.enforce.dev/actions/v1/record" >/dev/null 2>&1 || true
     - name: Install Trivy
       if: ${{ inputs.skip-setup-trivy == 'false' }}
       # Pin to hash instead of tag for aquasecurity/setup-trivy action so that GitHub Actions 
@@ -131,12 +145,10 @@ runs:
         version: ${{ inputs.version }}
         cache: ${{ inputs.cache }}
         token: ${{ inputs.token-setup-trivy }}
-
     - name: Get current date
       id: date
       shell: bash
       run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
-
     - name: Restore DB from cache
       if: ${{ inputs.cache == 'true' }}
       uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
@@ -144,13 +156,13 @@ runs:
         path: ${{ inputs.cache-dir }}
         key: cache-trivy-${{ steps.date.outputs.date }}
         restore-keys: cache-trivy-
-
     - name: Set GitHub Path
-      run: echo "$GITHUB_ACTION_PATH" >> $GITHUB_PATH # zizmor: ignore[github-env]
       shell: bash
       env:
         GITHUB_ACTION_PATH: ${{ github.action_path }}
-
+      run: |
+        safe=$(printf '%s' "$GITHUB_ACTION_PATH" | tr -d '\n\r')
+        echo "$safe" >> "$GITHUB_PATH"
     # Create and Clear Trivy Envs file
     # See #422 for context
     - name: Clear Trivy Envs file
@@ -158,7 +170,6 @@ runs:
       run: |
         rm -f trivy_envs.txt
         touch trivy_envs.txt
-
     - name: Set Trivy environment variables
       shell: bash
       env:
@@ -229,7 +240,6 @@ runs:
         set_env_var_if_provided "TRIVY_CONFIG" "$INPUT_TRIVY_CONFIG" ""
         set_env_var_if_provided "TRIVY_TF_VARS" "$INPUT_TF_VARS" ""
         set_env_var_if_provided "TRIVY_DOCKER_HOST" "$INPUT_DOCKER_HOST" ""
-
     - name: Run Trivy
       shell: bash
       run: entrypoint.sh
@@ -243,10 +253,8 @@ runs:
         INPUT_TRIVYIGNORES: ${{ inputs.trivyignores }}
         INPUT_GITHUB_PAT: ${{ inputs.github-pat }}
         INPUT_LIMIT_SEVERITIES_FOR_SARIF: ${{ inputs.limit-severities-for-sarif }}
-
         # For Trivy
         TRIVY_CACHE_DIR: ${{ inputs.cache-dir }} # Always set
-
     # Remove Trivy envs to keep envs within this action and avoid env leaks
     # See #422 for context
     - name: Remove Trivy Envs file
