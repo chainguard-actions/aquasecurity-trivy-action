@@ -1,6 +1,6 @@
 # aquasecurity/trivy-action
 
-Scans container images for vulnerabilities with Trivy
+Runs Trivy as GitHub action to scan your Docker container image for vulnerabilities
 
 Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/aquasecurity/trivy-action](https://github.com/aquasecurity/trivy-action).
 
