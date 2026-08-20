@@ -1,0 +1,53 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  TRIVY_VERSION: 0.69.3
+  BATS_LIB_PATH: '/usr/lib/'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Run zizmor
+        uses: zizmorcore/zizmor-action@0dce2577a4760a2749d8cfb7a84b7d5585ebcb7d # v0.5.0
+        with:
+          advanced-security: false
+
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Bats and bats libs
+        id: setup-bats
+        uses: bats-core/bats-action@42fcc8700f773c075a16a90eb11674c0318ad507 # 3.0.1
+
+      - name: Install Trivy
+        env:
+          TRIVY_VERSION: ${{ env.TRIVY_VERSION }}
+        run: |
+          INSTALL_SCRIPT="$(mktemp)"
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh -o "$INSTALL_SCRIPT"
+          sh "$INSTALL_SCRIPT" -b /usr/local/bin "v${TRIVY_VERSION}"
+          rm -f "$INSTALL_SCRIPT"
+          trivy --version
+
+      - name: Test
+        env:
+          BATS_LIB_PATH: ${{ steps.setup-bats.outputs.lib-path }}
+        run: make test

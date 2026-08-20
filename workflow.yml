@@ -4,27 +4,25 @@ on:
     branches:
       - master
   pull_request:
-
 permissions:
   contents: read
   security-events: write
-
 jobs:
   build:
     name: Build
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+        uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26 # v3
 
       - name: Build an image from Dockerfile
         env:
-          GITHUB_SHA: ${{ github.sha }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t docker.io/my-organization/my-app:$GITHUB_SHA .
+          docker build -t "docker.io/my-organization/my-app:$IMAGE_TAG" .
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@bfa4b33a029b9aa80ddb784b45574c30e072c59e # master
+        uses: aquasecurity/trivy-action@d2a0b60797ff03db6132bd4e2b293f9b37081297 # master
         with:
           image-ref: 'docker.io/my-organization/my-app:${{ github.sha }}'
           exit-code: '1'
@@ -36,6 +34,6 @@ jobs:
           severity: 'CRITICAL,HIGH'
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@d77b13a0df3134d64a457ea9003f600b09fa1c8a # v3
+        uses: github/codeql-action/upload-sarif@f3712979fa5f215279b101dd0a2e3bdfb4353324 # v3
         with:
           sarif_file: 'trivy-results.sarif'

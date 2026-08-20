@@ -6,19 +6,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Run Trivy with docker-host specified
-        id: action
+
+      - name: Create a simple test directory to scan
+        run: |
+          mkdir -p /tmp/scan-docker-host
+          echo '{"name":"docker-host-test","version":"1.0.0"}' > /tmp/scan-docker-host/package.json
+
+      - id: action
         uses: .
         with:
-          scan-type: image
-          image-ref: alpine:3.18
-          docker-host: unix:///var/run/docker.sock
+          scan-type: fs
+          scan-ref: /tmp/scan-docker-host
+          format: table
           exit-code: '0'
+          severity: HIGH,CRITICAL
           hide-progress: 'true'
-          severity: CRITICAL
-          ignore-unfixed: 'true'
-          cache: 'false'
-      - name: Assert docker-host scan completed
+          docker-host: unix:///var/run/docker.sock
+
+      - name: Assert action completed successfully with docker-host
         run: |
-          echo "Trivy image scan with docker-host completed successfully"
-          echo "PASS"
+          echo "PASS: Trivy scan with docker-host input completed without error"

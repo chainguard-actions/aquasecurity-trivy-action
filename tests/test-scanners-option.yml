@@ -1,0 +1,38 @@
+name: Test scanners option
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create a simple test directory to scan
+        run: |
+          mkdir -p /tmp/scan-scanners
+          echo '{"name":"scanners-test","version":"1.0.0"}' > /tmp/scan-scanners/package.json
+
+      - id: action
+        uses: .
+        with:
+          scan-type: fs
+          scan-ref: /tmp/scan-scanners
+          format: json
+          output: /tmp/trivy-scanners-results.json
+          exit-code: '0'
+          scanners: vuln
+          hide-progress: 'true'
+
+      - name: Assert scan completed with custom scanners
+        run: |
+          echo "Checking for output file..."
+          if [ ! -f /tmp/trivy-scanners-results.json ]; then
+            echo "FAIL: output file /tmp/trivy-scanners-results.json was not created"
+            exit 1
+          fi
+          echo "Checking JSON validity..."
+          if ! python3 -c "import json, sys; json.load(open('/tmp/trivy-scanners-results.json'))" 2>&1; then
+            echo "FAIL: output file is not valid JSON"
+            exit 1
+          fi
+          echo "PASS: scan with custom scanners completed and output is valid JSON"

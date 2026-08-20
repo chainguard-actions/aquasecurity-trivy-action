@@ -6,24 +6,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Run Trivy filesystem scan
-        id: action
+
+      - name: Create a simple test file to scan
+        run: |
+          mkdir -p /tmp/scan-target
+          echo '{"name":"test","version":"1.0.0"}' > /tmp/scan-target/package.json
+
+      - id: action
         uses: .
         with:
           scan-type: fs
-          scan-ref: .
+          scan-ref: /tmp/scan-target
           format: table
+          exit-code: '0'
           severity: HIGH,CRITICAL
-          scanners: vuln
-          ignore-unfixed: 'true'
-          vuln-type: os,library
           hide-progress: 'true'
-          skip-dirs: .git
-          skip-files: ''
-          timeout: 5m0s
-          list-all-pkgs: 'false'
-          cache: 'false'
-      - name: Assert scan completed
+
+      - name: Assert action completed successfully
         run: |
-          echo "Trivy filesystem scan completed successfully"
-          echo "PASS"
+          echo "PASS: Trivy filesystem scan completed without error"

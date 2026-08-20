@@ -1,0 +1,39 @@
+name: Test JSON output format
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create a simple test directory to scan
+        run: |
+          mkdir -p /tmp/scan-json
+          echo '{"name":"test-app","version":"1.0.0","dependencies":{}}' > /tmp/scan-json/package.json
+
+      - id: action
+        uses: .
+        with:
+          scan-type: fs
+          scan-ref: /tmp/scan-json
+          format: json
+          output: /tmp/trivy-results.json
+          exit-code: '0'
+          severity: HIGH,CRITICAL
+          hide-progress: 'true'
+
+      - name: Assert JSON output file was created
+        run: |
+          echo "Checking for output file..."
+          if [ ! -f /tmp/trivy-results.json ]; then
+            echo "FAIL: output file /tmp/trivy-results.json was not created"
+            exit 1
+          fi
+          echo "Output file exists. Checking JSON validity..."
+          if ! python3 -c "import json, sys; json.load(open('/tmp/trivy-results.json'))" 2>&1; then
+            echo "FAIL: output file is not valid JSON"
+            exit 1
+          fi
+          echo "PASS: JSON output file created and is valid JSON"
+          cat /tmp/trivy-results.json | python3 -c "import json,sys; d=json.load(sys.stdin); print('SchemaVersion:', d.get('SchemaVersion', 'N/A'))"

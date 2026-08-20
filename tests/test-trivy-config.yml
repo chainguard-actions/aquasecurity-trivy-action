@@ -1,0 +1,35 @@
+name: Test trivy-config input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create a trivy config file and scan target
+        run: |
+          mkdir -p /tmp/scan-trivy-config
+          echo '{"name":"config-test","version":"1.0.0"}' > /tmp/scan-trivy-config/package.json
+
+          cat > /tmp/trivy-custom.yaml << 'EOF'
+          quiet: true
+          severity:
+            - HIGH
+            - CRITICAL
+          exit-code: 0
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          scan-type: fs
+          scan-ref: /tmp/scan-trivy-config
+          format: table
+          exit-code: '0'
+          hide-progress: 'true'
+          trivy-config: /tmp/trivy-custom.yaml
+
+      - name: Assert action completed successfully with trivy-config
+        run: |
+          echo "PASS: Trivy scan with trivy-config completed without error"

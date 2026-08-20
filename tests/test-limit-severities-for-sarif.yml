@@ -1,0 +1,39 @@
+name: Test limit-severities-for-sarif input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create a simple test directory to scan
+        run: |
+          mkdir -p /tmp/scan-sarif
+          echo '{"name":"sarif-test","version":"1.0.0"}' > /tmp/scan-sarif/package.json
+
+      - id: action
+        uses: .
+        with:
+          scan-type: fs
+          scan-ref: /tmp/scan-sarif
+          format: sarif
+          output: /tmp/trivy-results.sarif
+          exit-code: '0'
+          severity: HIGH,CRITICAL
+          hide-progress: 'true'
+          limit-severities-for-sarif: 'true'
+
+      - name: Assert SARIF output file was created
+        run: |
+          echo "Checking for SARIF output file..."
+          if [ ! -f /tmp/trivy-results.sarif ]; then
+            echo "FAIL: SARIF output file /tmp/trivy-results.sarif was not created"
+            exit 1
+          fi
+          echo "SARIF file exists. Checking JSON validity..."
+          if ! python3 -c "import json, sys; json.load(open('/tmp/trivy-results.sarif'))" 2>&1; then
+            echo "FAIL: SARIF output file is not valid JSON"
+            exit 1
+          fi
+          echo "PASS: SARIF output file created and is valid JSON with limit-severities-for-sarif=true"

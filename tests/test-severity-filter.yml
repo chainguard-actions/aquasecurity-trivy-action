@@ -1,0 +1,38 @@
+name: Test severity filtering
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create a simple test directory to scan
+        run: |
+          mkdir -p /tmp/scan-severity
+          echo '{"name":"severity-test","version":"1.0.0"}' > /tmp/scan-severity/package.json
+
+      - id: action
+        uses: .
+        with:
+          scan-type: fs
+          scan-ref: /tmp/scan-severity
+          format: json
+          output: /tmp/trivy-severity-results.json
+          exit-code: '0'
+          severity: CRITICAL
+          hide-progress: 'true'
+
+      - name: Assert scan completed and output is valid JSON
+        run: |
+          echo "Checking for output file..."
+          if [ ! -f /tmp/trivy-severity-results.json ]; then
+            echo "FAIL: output file /tmp/trivy-severity-results.json was not created"
+            exit 1
+          fi
+          echo "Checking JSON validity..."
+          if ! python3 -c "import json, sys; json.load(open('/tmp/trivy-severity-results.json'))" 2>&1; then
+            echo "FAIL: output file is not valid JSON"
+            exit 1
+          fi
+          echo "PASS: severity-filtered scan completed and output is valid JSON"

@@ -1,0 +1,39 @@
+name: Test ignore-unfixed option
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create a simple test directory to scan
+        run: |
+          mkdir -p /tmp/scan-unfixed
+          echo '{"name":"unfixed-test","version":"1.0.0"}' > /tmp/scan-unfixed/package.json
+
+      - id: action
+        uses: .
+        with:
+          scan-type: fs
+          scan-ref: /tmp/scan-unfixed
+          format: json
+          output: /tmp/trivy-unfixed-results.json
+          exit-code: '0'
+          ignore-unfixed: 'true'
+          severity: HIGH,CRITICAL
+          hide-progress: 'true'
+
+      - name: Assert scan completed with ignore-unfixed
+        run: |
+          echo "Checking for output file..."
+          if [ ! -f /tmp/trivy-unfixed-results.json ]; then
+            echo "FAIL: output file /tmp/trivy-unfixed-results.json was not created"
+            exit 1
+          fi
+          echo "Checking JSON validity..."
+          if ! python3 -c "import json, sys; json.load(open('/tmp/trivy-unfixed-results.json'))" 2>&1; then
+            echo "FAIL: output file is not valid JSON"
+            exit 1
+          fi
+          echo "PASS: ignore-unfixed scan completed and output is valid JSON"

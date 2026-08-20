@@ -1,0 +1,31 @@
+name: Test trivyignore file support
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create scan target and trivyignore file
+        run: |
+          mkdir -p /tmp/scan-ignore
+          echo '{"name":"ignore-test","version":"1.0.0"}' > /tmp/scan-ignore/package.json
+          # Create a trivyignore file with a sample CVE to ignore
+          echo "# Test trivyignore file" > /tmp/test.trivyignore
+          echo "CVE-2021-99999" >> /tmp/test.trivyignore
+
+      - id: action
+        uses: .
+        with:
+          scan-type: fs
+          scan-ref: /tmp/scan-ignore
+          format: table
+          exit-code: '0'
+          severity: HIGH,CRITICAL
+          hide-progress: 'true'
+          trivyignores: /tmp/test.trivyignore
+
+      - name: Assert action completed successfully with trivyignore
+        run: |
+          echo "PASS: Trivy scan with trivyignore file completed without error"
