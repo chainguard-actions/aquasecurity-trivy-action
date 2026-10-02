@@ -17,6 +17,6 @@ jobs:
           severity: CRITICAL
           hide-progress: 'true'
 
-      - name: Assert action completed successfully using image-ref
+      - name: Assert action completed successfully with image-ref
         run: |
-          echo "PASS: Trivy image scan using image-ref (backward compat) completed without error"
+          echo "PASS: Trivy image scan using image-ref completed without error"

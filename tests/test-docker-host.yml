@@ -19,10 +19,10 @@ jobs:
           scan-ref: /tmp/scan-docker-host
           format: table
           exit-code: '0'
-          severity: HIGH,CRITICAL
+          severity: CRITICAL
           hide-progress: 'true'
           docker-host: unix:///var/run/docker.sock
 
-      - name: Assert action completed successfully with docker-host
+      - name: Assert action completed successfully with docker-host set
         run: |
           echo "PASS: Trivy scan with docker-host input completed without error"

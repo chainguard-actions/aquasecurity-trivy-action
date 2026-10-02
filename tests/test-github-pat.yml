@@ -12,9 +12,6 @@ jobs:
           mkdir -p /tmp/scan-github-pat
           echo '{"name":"github-pat-test","version":"1.0.0"}' > /tmp/scan-github-pat/package.json
 
-      # The github format with github-pat attempts to upload SBOM to GitHub Dependency Snapshot API.
-      # Under the harness, GITHUB_REPOSITORY is a sentinel that doesn't exist, so the API call
-      # will fail. We allow this and assert on the outcome gracefully.
       - id: action
         uses: .
         continue-on-error: true
@@ -28,15 +25,15 @@ jobs:
           hide-progress: 'true'
           github-pat: ${{ github.token }}
 
-      - name: Assert action ran (succeeded or failed gracefully on sentinel repo)
+      - name: Assert action ran with github-pat input
         env:
           OUTCOME: ${{ steps.action.outcome }}
         run: |
           echo "outcome: $OUTCOME"
           if [ "$OUTCOME" = "success" ]; then
-            echo "PASS: action succeeded (SBOM uploaded or skipped)"
+            echo "PASS: action succeeded with github-pat"
           elif [ "$OUTCOME" = "failure" ]; then
-            echo "PASS: action failed gracefully (sentinel repo is not resolvable for Dependency Snapshot API)"
+            echo "PASS: action failed gracefully (expected with sentinel repo for dependency snapshot API)"
           else
             echo "FAIL: unexpected outcome '$OUTCOME'"
             exit 1

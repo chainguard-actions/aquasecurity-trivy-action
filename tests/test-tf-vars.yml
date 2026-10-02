@@ -7,35 +7,32 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Create terraform files and tfvars for scanning
+      - name: Create terraform files for scanning
         run: |
-          mkdir -p /tmp/scan-terraform
-          cat > /tmp/scan-terraform/main.tf << 'EOF'
+          mkdir -p /tmp/scan-tf
+          cat > /tmp/scan-tf/main.tf << 'EOF'
           variable "bucket_name" {
-            description = "S3 bucket name"
-            type        = string
+            type = string
           }
-
           resource "aws_s3_bucket" "example" {
             bucket = var.bucket_name
           }
           EOF
-
-          cat > /tmp/scan-terraform/terraform.tfvars << 'EOF'
+          cat > /tmp/scan-tf/terraform.tfvars << 'EOF'
           bucket_name = "my-test-bucket"
           EOF
 
       - id: action
         uses: .
         with:
-          scan-type: fs
-          scan-ref: /tmp/scan-terraform
+          scan-type: config
+          scan-ref: /tmp/scan-tf
           format: table
           exit-code: '0'
-          severity: HIGH,CRITICAL
+          severity: CRITICAL
           hide-progress: 'true'
-          tf-vars: /tmp/scan-terraform/terraform.tfvars
+          tf-vars: /tmp/scan-tf/terraform.tfvars
 
       - name: Assert action completed successfully with tf-vars
         run: |
-          echo "PASS: Trivy scan with tf-vars completed without error"
+          echo "PASS: Trivy config scan with tf-vars input completed without error"

@@ -4,9 +4,11 @@ on:
     branches:
       - master
   pull_request:
+
 permissions:
   contents: read
   security-events: write
+
 jobs:
   build:
     name: Build
@@ -17,12 +19,12 @@ jobs:
 
       - name: Build an image from Dockerfile
         env:
-          IMAGE_TAG: ${{ github.sha }}
+          GITHUB_SHA: ${{ github.sha }}
         run: |
-          docker build -t "docker.io/my-organization/my-app:$IMAGE_TAG" .
+          docker build -t docker.io/my-organization/my-app:$GITHUB_SHA .
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@d2a0b60797ff03db6132bd4e2b293f9b37081297 # master
+        uses: aquasecurity/trivy-action@c03d123cb480c08c69b054af418ea5e69fe6e57e # master
         with:
           image-ref: 'docker.io/my-organization/my-app:${{ github.sha }}'
           exit-code: '1'
@@ -34,6 +36,6 @@ jobs:
           severity: 'CRITICAL,HIGH'
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@f3712979fa5f215279b101dd0a2e3bdfb4353324 # v3
+        uses: github/codeql-action/upload-sarif@1190a975f95ce23525efb6a3fc21ea29567c1b52 # v3
         with:
           sarif_file: 'trivy-results.sarif'
