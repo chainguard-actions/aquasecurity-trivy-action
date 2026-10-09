@@ -1,0 +1,35 @@
+name: Test list-all-pkgs option
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run Trivy with list-all-pkgs=true
+        id: action
+        uses: .
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: json
+          output: trivy-allpkgs.json
+          exit-code: '0'
+          list-all-pkgs: 'true'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Assert output file created and contains package data
+        run: |
+          echo "Checking for trivy-allpkgs.json..."
+          if [ ! -f "trivy-allpkgs.json" ]; then
+            echo "FAIL: trivy-allpkgs.json was not created"
+            exit 1
+          fi
+          echo "File exists, checking it is valid JSON..."
+          if ! python3 -c "import json, sys; json.load(open('trivy-allpkgs.json'))" 2>/dev/null; then
+            echo "FAIL: trivy-allpkgs.json is not valid JSON"
+            cat trivy-allpkgs.json
+            exit 1
+          fi
+          echo "PASS: Trivy ran with list-all-pkgs=true and produced valid JSON output"

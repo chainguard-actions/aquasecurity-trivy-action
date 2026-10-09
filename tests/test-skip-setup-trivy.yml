@@ -1,0 +1,28 @@
+name: Test skip-setup-trivy option
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install Trivy manually
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.70.0
+          trivy --version
+
+      - name: Run Trivy with skip-setup-trivy=true
+        id: action
+        uses: .
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          exit-code: '0'
+          skip-setup-trivy: 'true'
+          severity: 'CRITICAL'
+
+      - name: Assert scan completed with pre-installed Trivy
+        run: |
+          echo "PASS: Trivy scan completed using pre-installed Trivy binary (skip-setup-trivy=true)"

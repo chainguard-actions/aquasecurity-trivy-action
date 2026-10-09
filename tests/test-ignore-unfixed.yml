@@ -1,0 +1,35 @@
+name: Test ignore-unfixed option
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run Trivy with ignore-unfixed=true
+        id: action
+        uses: .
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: json
+          output: trivy-unfixed.json
+          exit-code: '0'
+          ignore-unfixed: 'true'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Assert output file created
+        run: |
+          echo "Checking for trivy-unfixed.json..."
+          if [ ! -f "trivy-unfixed.json" ]; then
+            echo "FAIL: trivy-unfixed.json was not created"
+            exit 1
+          fi
+          echo "File exists, checking it is valid JSON..."
+          if ! python3 -c "import json, sys; json.load(open('trivy-unfixed.json'))" 2>/dev/null; then
+            echo "FAIL: trivy-unfixed.json is not valid JSON"
+            cat trivy-unfixed.json
+            exit 1
+          fi
+          echo "PASS: Trivy ran with ignore-unfixed=true and produced valid JSON output"

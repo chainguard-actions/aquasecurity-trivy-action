@@ -1,0 +1,35 @@
+name: Test vuln-type option
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run Trivy with vuln-type=library only
+        id: action
+        uses: .
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: json
+          output: trivy-vulntype.json
+          exit-code: '0'
+          vuln-type: 'library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Assert output file created and is valid JSON
+        run: |
+          echo "Checking for trivy-vulntype.json..."
+          if [ ! -f "trivy-vulntype.json" ]; then
+            echo "FAIL: trivy-vulntype.json was not created"
+            exit 1
+          fi
+          echo "File exists, checking it is valid JSON..."
+          if ! python3 -c "import json, sys; json.load(open('trivy-vulntype.json'))" 2>/dev/null; then
+            echo "FAIL: trivy-vulntype.json is not valid JSON"
+            cat trivy-vulntype.json
+            exit 1
+          fi
+          echo "PASS: Trivy ran with vuln-type=library and produced valid JSON output"
