@@ -9,6 +9,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
 | v0.35.0 | [`v0.35.0`](https://github.com/chainguard-actions/aquasecurity-trivy-action/tree/v0.35.0) | [`57a97c7`](https://github.com/aquasecurity/trivy-action/commit/57a97c7e7821a5776cebc9bb87c984fa69cba8f1) |
+| v0.36.0 | [`v0.36.0`](https://github.com/chainguard-actions/aquasecurity-trivy-action/tree/v0.36.0) | [`ed142fd`](https://github.com/aquasecurity/trivy-action/commit/ed142fd0673e97e23eac54620cfb913e5ce36c25) |
 
 ## Privacy
 
