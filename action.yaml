@@ -140,7 +140,7 @@ runs:
       # "allowing select actions" feature can be used to whitelist the dependent action by a hash.
       # This is needed since some organizations have a policy to only allow pinned 3rd party actions to 
       # be used.
-      uses: aquasecurity/setup-trivy@3fb12ec12f41e471780db15c232d5dd185dcb514 # v0.2.6
+      uses: chainguard-actions/aquasecurity-setup-trivy@4b6cc10abcb9d381255576508a1bf8239d994235 # v0.2.6
       with:
         version: ${{ inputs.version }}
         cache: ${{ inputs.cache }}
@@ -151,7 +151,7 @@ runs:
       run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
     - name: Restore DB from cache
       if: ${{ inputs.cache == 'true' }}
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      uses: chainguard-actions/actions-cache@b5b76c7016521bd34554159c882773b3df2e994a # v5.0.5
       with:
         path: ${{ inputs.cache-dir }}
         key: cache-trivy-${{ steps.date.outputs.date }}
