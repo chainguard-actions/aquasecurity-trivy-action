@@ -19,12 +19,12 @@ jobs:
 
       - name: Build an image from Dockerfile
         env:
-          GITHUB_SHA: ${{ github.sha }}
+          IMAGE_SHA: ${{ github.sha }}
         run: |
-          docker build -t docker.io/my-organization/my-app:$GITHUB_SHA .
+          docker build -t "docker.io/my-organization/my-app:$IMAGE_SHA" .
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@c03d123cb480c08c69b054af418ea5e69fe6e57e # master
+        uses: aquasecurity/trivy-action@8f28faec26515256b6d22074d1d2a8986f4cbd87 # master
         with:
           image-ref: 'docker.io/my-organization/my-app:${{ github.sha }}'
           exit-code: '1'
@@ -36,6 +36,6 @@ jobs:
           severity: 'CRITICAL,HIGH'
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@1190a975f95ce23525efb6a3fc21ea29567c1b52 # v3
+        uses: github/codeql-action/upload-sarif@4bfa242aa49c5f7c6770b98670d354a7dfac05f8 # v3
         with:
           sarif_file: 'trivy-results.sarif'

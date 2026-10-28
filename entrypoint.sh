@@ -26,10 +26,7 @@ if [ -n "${INPUT_TRIVYIGNORES:-}" ]; then
   plain_count=0
 
   # Validate files and detect types
-  IFS=',' read -ra _trivyignores_arr <<< "${INPUT_TRIVYIGNORES}"
-  for f in "${_trivyignores_arr[@]}"; do
-    f="${f# }"  # strip leading space
-    f="${f% }"  # strip trailing space
+  for f in ${INPUT_TRIVYIGNORES//,/ }; do
     if [ ! -f "$f" ]; then
       echo "ERROR: cannot find ignorefile '${f}'." >&2
       exit 1
@@ -55,8 +52,7 @@ if [ -n "${INPUT_TRIVYIGNORES:-}" ]; then
     fi
 
     # Use the single YAML file
-    yaml_file="${_trivyignores_arr[0]# }"
-    yaml_file="${yaml_file% }"
+    yaml_file=$(echo ${INPUT_TRIVYIGNORES//,/ } | awk '{print $1}')
     echo "Using YAML ignorefile '$yaml_file':"
     cat "$yaml_file"
     export TRIVY_IGNOREFILE="$yaml_file"
@@ -66,9 +62,7 @@ if [ -n "${INPUT_TRIVYIGNORES:-}" ]; then
     ignorefile="./trivyignores"
     : > "$ignorefile"
 
-    for f in "${_trivyignores_arr[@]}"; do
-      f="${f# }"  # strip leading space
-      f="${f% }"  # strip trailing space
+    for f in ${INPUT_TRIVYIGNORES//,/ }; do
       echo "Found ignorefile '$f':"
       cat "$f"
       cat "$f" >> "$ignorefile"
