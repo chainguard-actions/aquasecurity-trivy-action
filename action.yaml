@@ -1,6 +1,7 @@
 name: 'Aqua Security Trivy'
 description: 'Scans container images for vulnerabilities with Trivy'
 author: 'Aqua Security'
+
 inputs:
   scan-type:
     description: 'Scan type to use for scanning vulnerability'
@@ -108,12 +109,14 @@ inputs:
     default: 'false'
   token-setup-trivy:
     description: >
-      `token-setup-trivy` is required when `github.token` in invalid for `https://github.com` server. See https://github.com/aquasecurity/setup-trivy/?tab=readme-ov-file#install-trivy-with-non-default-token for more details. `token-setup-trivy` is only used to fetch the Trivy repository in `setup-trivy`
-
+      `token-setup-trivy` is required when `github.token` in invalid for `https://github.com` server.
+      See https://github.com/aquasecurity/setup-trivy/?tab=readme-ov-file#install-trivy-with-non-default-token for more details.
+      `token-setup-trivy` is only used to fetch the Trivy repository in `setup-trivy`
     required: false
     ## ${{ github.token }} is default value for actions/checkout
     ## cf. https://github.com/actions/checkout/blob/eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871/action.yml#L24
     default: ${{ github.token }}
+
 runs:
   using: 'composite'
   steps:
@@ -140,29 +143,33 @@ runs:
       # "allowing select actions" feature can be used to whitelist the dependent action by a hash.
       # This is needed since some organizations have a policy to only allow pinned 3rd party actions to 
       # be used.
-      uses: chainguard-actions/aquasecurity-setup-trivy@4b6cc10abcb9d381255576508a1bf8239d994235 # v0.2.6
+      uses: aquasecurity/setup-trivy@3fb12ec12f41e471780db15c232d5dd185dcb514 # v0.2.6
       with:
         version: ${{ inputs.version }}
         cache: ${{ inputs.cache }}
         token: ${{ inputs.token-setup-trivy }}
+
     - name: Get current date
       id: date
       shell: bash
       run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
     - name: Restore DB from cache
       if: ${{ inputs.cache == 'true' }}
-      uses: chainguard-actions/actions-cache@b5b76c7016521bd34554159c882773b3df2e994a # v5.0.5
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
       with:
         path: ${{ inputs.cache-dir }}
         key: cache-trivy-${{ steps.date.outputs.date }}
         restore-keys: cache-trivy-
+
     - name: Set GitHub Path
+      run: |
+        safe=$(printf '%s' "$GITHUB_ACTION_PATH" | tr -d '\n\r')
+        echo "$safe" >> "$GITHUB_PATH"
       shell: bash
       env:
         GITHUB_ACTION_PATH: ${{ github.action_path }}
-      run: |
-        safe_path="$(printf '%s' "$GITHUB_ACTION_PATH" | tr -d '\n\r')"
-        echo "$safe_path" >> "$GITHUB_PATH"
+
     # Create and Clear Trivy Envs file
     # See #422 for context
     - name: Clear Trivy Envs file
@@ -170,6 +177,7 @@ runs:
       run: |
         rm -f trivy_envs.txt
         touch trivy_envs.txt
+
     - name: Set Trivy environment variables
       shell: bash
       env:
@@ -240,6 +248,7 @@ runs:
         set_env_var_if_provided "TRIVY_CONFIG" "$INPUT_TRIVY_CONFIG" ""
         set_env_var_if_provided "TRIVY_TF_VARS" "$INPUT_TF_VARS" ""
         set_env_var_if_provided "TRIVY_DOCKER_HOST" "$INPUT_DOCKER_HOST" ""
+
     - name: Run Trivy
       shell: bash
       run: entrypoint.sh
@@ -253,8 +262,10 @@ runs:
         INPUT_TRIVYIGNORES: ${{ inputs.trivyignores }}
         INPUT_GITHUB_PAT: ${{ inputs.github-pat }}
         INPUT_LIMIT_SEVERITIES_FOR_SARIF: ${{ inputs.limit-severities-for-sarif }}
+
         # For Trivy
         TRIVY_CACHE_DIR: ${{ inputs.cache-dir }} # Always set
+
     # Remove Trivy envs to keep envs within this action and avoid env leaks
     # See #422 for context
     - name: Remove Trivy Envs file

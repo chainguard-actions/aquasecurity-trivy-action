@@ -4,9 +4,8 @@
   "version": "v0.36.0",
   "commit_sha": "ed142fd0673e97e23eac54620cfb913e5ce36c25",
   "url": "https://github.com/aquasecurity/trivy-action",
-  "policy_sha": "d636be7e43ef829af6e853da6b3c7566db9f72fe",
+  "policy_sha": "374911c4be584df24e6da57af2d990570ef0f859",
   "test_policy_sha": "843adf9e4b8f85d0c08b27b9d0b09dd094b54702",
   "test_agent_version": "2",
-  "harden_agent_version": "2",
-  "dependency_fingerprint": "sha256:89ee338a19ba23400fbfee1fc2b95fad339b82272915bd250cbba27c2b99b4c7"
+  "harden_agent_version": "2"
 }

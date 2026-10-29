@@ -25,11 +25,12 @@ if [ -n "${INPUT_TRIVYIGNORES:-}" ]; then
   yaml_count=0
   plain_count=0
 
-  # Split comma-separated list into an array safely (no glob expansion)
-  IFS=',' read -ra _trivyignores_arr <<< "${INPUT_TRIVYIGNORES}"
+  # Split the list on commas and whitespace (as upstream's unquoted expansion did) into an array
+  trivyignores_files=()
+  read -r -d '' -a trivyignores_files <<< "${INPUT_TRIVYIGNORES//,/ }" || true
 
   # Validate files and detect types
-  for f in "${_trivyignores_arr[@]}"; do
+  for f in ${trivyignores_files[@]+"${trivyignores_files[@]}"}; do
     if [ ! -f "$f" ]; then
       echo "ERROR: cannot find ignorefile '${f}'." >&2
       exit 1
@@ -54,8 +55,8 @@ if [ -n "${INPUT_TRIVYIGNORES:-}" ]; then
       exit 1
     fi
 
-    # Use the single YAML file (first element of the array)
-    yaml_file="${_trivyignores_arr[0]}"
+    # Use the single YAML file
+    yaml_file="${trivyignores_files[0]}"
     echo "Using YAML ignorefile '$yaml_file':"
     cat "$yaml_file"
     export TRIVY_IGNOREFILE="$yaml_file"
@@ -65,7 +66,7 @@ if [ -n "${INPUT_TRIVYIGNORES:-}" ]; then
     ignorefile="./trivyignores"
     : > "$ignorefile"
 
-    for f in "${_trivyignores_arr[@]}"; do
+    for f in ${trivyignores_files[@]+"${trivyignores_files[@]}"}; do
       echo "Found ignorefile '$f':"
       cat "$f"
       cat "$f" >> "$ignorefile"
