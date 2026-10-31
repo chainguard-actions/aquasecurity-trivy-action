@@ -1,0 +1,42 @@
+name: Test JSON output format
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run Trivy with JSON output
+        id: action
+        uses: .
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: json
+          output: trivy-results.json
+          exit-code: '0'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Assert JSON output file was created
+        run: |
+          echo "Checking for trivy-results.json..."
+          if [ ! -f "trivy-results.json" ]; then
+            echo "FAIL: trivy-results.json was not created"
+            exit 1
+          fi
+          echo "File exists, checking it is valid JSON..."
+          if ! python3 -c "import json, sys; json.load(open('trivy-results.json'))" 2>/dev/null; then
+            echo "FAIL: trivy-results.json is not valid JSON"
+            cat trivy-results.json
+            exit 1
+          fi
+          echo "PASS: trivy-results.json is valid JSON"
+          # Check it has expected Trivy structure
+          SCHEMA_VERSION=$(python3 -c "import json; d=json.load(open('trivy-results.json')); print(d.get('SchemaVersion','missing'))" 2>/dev/null || echo "missing")
+          echo "SchemaVersion: $SCHEMA_VERSION"
+          if [ "$SCHEMA_VERSION" = "missing" ]; then
+            echo "FAIL: JSON output missing SchemaVersion field"
+            exit 1
+          fi
+          echo "PASS: JSON output has expected Trivy structure"

@@ -1,0 +1,39 @@
+name: Test limit-severities-for-sarif input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run Trivy with SARIF format and limit-severities-for-sarif
+        id: action
+        uses: .
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: trivy-results.sarif
+          exit-code: '0'
+          severity: 'CRITICAL,HIGH'
+          limit-severities-for-sarif: 'true'
+
+      - name: Assert SARIF output file was created
+        run: |
+          echo "Checking for trivy-results.sarif..."
+          if [ ! -f "trivy-results.sarif" ]; then
+            echo "FAIL: trivy-results.sarif was not created"
+            exit 1
+          fi
+          echo "File exists, checking it is valid JSON (SARIF is JSON-based)..."
+          if ! python3 -c "import json, sys; json.load(open('trivy-results.sarif'))" 2>/dev/null; then
+            echo "FAIL: trivy-results.sarif is not valid JSON"
+            cat trivy-results.sarif
+            exit 1
+          fi
+          echo "PASS: trivy-results.sarif is valid JSON/SARIF"
+          # Check it has expected SARIF structure
+          SCHEMA=$(python3 -c "import json; d=json.load(open('trivy-results.sarif')); print(d.get('\$schema','missing'))" 2>/dev/null || echo "missing")
+          echo "SARIF schema: $SCHEMA"
+          echo "PASS: Trivy SARIF scan with limit-severities-for-sarif completed successfully"

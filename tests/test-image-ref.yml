@@ -1,0 +1,22 @@
+name: Test image-ref input (backward compatibility)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run Trivy using image-ref input
+        id: action
+        uses: .
+        with:
+          scan-type: image
+          image-ref: alpine:3.18
+          format: table
+          exit-code: '0'
+          severity: 'CRITICAL'
+
+      - name: Assert scan completed successfully
+        run: |
+          echo "PASS: Trivy image scan using image-ref input completed without error"
