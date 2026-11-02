@@ -1,7 +1,0 @@
-vulnerabilities:
-  - id: CVE-2021-12345
-    paths:
-      - "usr/lib/test"
-    statement: "Test ignore for testing purposes"
-  - id: CVE-2022-99999
-    statement: "Another test ignore"
